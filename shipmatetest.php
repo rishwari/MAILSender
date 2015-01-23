@@ -2,16 +2,7 @@
 
 $querydebugmode = 'true';
 $type = 'pdo';
-$shipmate_db_host = '192.168.75.34';
-$shipmate_db = 'DBSHIP';
-$shipmate_db_user = 'SBNTUser';
-$shipmate_db_pwd = 'ShipMate4U!';
 
-
-$myshipmate_db_host = '10.22.70.48';
-$myshipmate_db = 'itss_dev';
-$myshipmate_db_user = 'rohini';
-$myshipmate_db_pwd = 'rohini';
 
 $shipmate = DB_connect_sql($shipmate_db_host,$shipmate_db,$shipmate_db_user,$shipmate_db_pwd);
 
