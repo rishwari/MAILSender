@@ -1,20 +1,30 @@
 <?php
 
 // Using charts from http://www.maani.us/charts/index.php?menu=Download
-include "charts.php";
+//include "charts.php";
 
 
 $type = 'pdo';
 $querydebugmode = 'false';
 $debug = 'false';
 
+$ns5_db_host = '10.22.10.13';
+$ns5_db = 'safenet';
+$ns5_db_user = 'abs';
+$ns5_db_pwd = 'Ships4Us!';
+
+$myns5_db_host = '10.22.70.48';
+$myns5_db = "itss_dev";
+$myns5_db_user = 'rohini';
+$myns5_db_pwd = 'rohini';
 
 $ns5 = DB_connect_sql($ns5_db_host,$ns5_db,$ns5_db_user,$ns5_db_pwd);
+
 $db = DB_connect($myns5_db_host,$myns5_db,$myns5_db_user,$myns5_db_pwd);
 //$safenet = DB_connect($ns5_db_host,$ns5_db,$ns5_db_user,$ns5_db_pwd);
 
-
-
+$stmt = runQuery("INSERT INTO delay_table (Source) VALUES ('NS5')",'','insert',$type,$db,$querydebugmode);
+$stmt = runQuery("INSERT INTO delay_table(Source,Ship_id,Ship,Age_IN,Age_OUT,timer_reset) VALUES ('NS5','NS5','NS5','NS5','NS5',NOW())",'','insert',$type,$db,$querydebugmode);
 $stmt = "CREATE TABLE IF NOT EXISTS delay_table (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,Source VARCHAR(30) NOT NULL,Ship_id VARCHAR(30) NOT NULL, Ship VARCHAR(30) NOT NULL,Age_IN VARCHAR(30) NOT NULL,Age_OUT VARCHAR(30) NOT NULL,timer_reset TIMESTAMP)";
 $create = $db->exec($stmt);
 
@@ -120,7 +130,7 @@ foreach ( $shipdetail as $vsl){
 //  $query = "SELECT Top 1 FILE_NAME,UNIX_TIMESTAMP(LOADED_ON),LOADED_ON,RM_VERSION_NUMBER FROM trfile_load_acknowledgement WHERE syst_id=$syst_id ORDER BY LOADED_ON DESC";
 // MS SQL  $query = "SELECT Top 1 FILE_NAME,DATEDIFF(s, '1970-01-01 00:00:00', LOADED_ON),LOADED_ON,RM_VERSION_NUMBER FROM trfile_load_acknowledgement WHERE syst_id=$syst_id ORDER BY LOADED_ON DESC";
 
-$stmt  = runQuery("SELECT Top 1 FILE_NAME,CONVERT(VARCHAR(19), LOADED_ON,120),RM_VERSION_NUMBER FROM trfile_load_acknowledgement WHERE syst_id=? ORDER BY LOADED_ON DESC" ,array($shipdetail[1]),'select',$type,$ns5,$querydebugmode);
+$stmt  = runQuery("SELECT Top 1 FILE_NAME,CONVERT(VARCHAR(19), LOADED_ON,120),RM_VERSION_NUMBER FROM trfile_load_acknowledgement WHERE syst_id=? ORDER BY LOADED_ON DESC" ,array($vsl[1]),'select',$type,$ns5,$querydebugmode);
 $stmt->setFetchMode(PDO::FETCH_NUM);
 $loadfiles = $stmt->fetch();
 
@@ -134,7 +144,7 @@ $query = "SELECT Top 1 FILE_NAME,CONVERT(VARCHAR(19), LOADED_ON,120),RM_VERSION_
 */
 //  $query = "SELECT Top 1 FILE_NAME,UNIX_TIMESTAMP(DUMPED_ON) FROM trfile_dump_acknowledgement WHERE syst_id=$syst_id AND ACKNOWLEDGED=1 ORDER BY DUMPED_ON DESC";
 
-  $stmt = runQuery("SELECT Top 1 FILE_NAME,CONVERT(VARCHAR(19), DUMPED_ON,120) FROM trfile_dump_acknowledgement WHERE syst_id=? AND ACKNOWLEDGED=1 ORDER BY DUMPED_ON DESC",array($shipdetail[1]),'select',$type,$ns5,$querydebugmode);
+  $stmt = runQuery("SELECT Top 1 FILE_NAME,CONVERT(VARCHAR(19), DUMPED_ON,120) FROM trfile_dump_acknowledgement WHERE syst_id=? AND ACKNOWLEDGED=1 ORDER BY DUMPED_ON DESC",array($vsl[1]),'select',$type,$ns5,$querydebugmode);
   $stmt->setFetchMode(PDO::FETCH_NUM);
   $dumpfiles = $stmt->fetch();
 
@@ -205,8 +215,10 @@ $query = "SELECT Top 1 FILE_NAME,CONVERT(VARCHAR(19), LOADED_ON,120),RM_VERSION_
     print "  <td class=\"$confirm_css\">".( sec2dhms(time() - $dump_ts) )." $since_last_load</td>";
     print "</tr>";
   } // End if
+   // $stmt = runQuery("INSERT INTO delay_table(Source,Ship_id,Ship,Age_IN,Age_OUT,timer_reset) VALUES ('NS5',:vsl_id,:vsl_name,'NS5','NS5',NOW())",array(':vsl_id' => $vsl[1],':vsl_name' => $vsl[0]),'insert',$type,$db,$querydebugmode);
+    $stmt = runQuery("INSERT INTO delay_table(Source,Ship_id,Ship,Age_IN,Age_OUT,timer_reset) VALUES ('NS5',:vsl_id,:vsl_name,:agein,:ageout,NOW())",array(':vsl_id' => $vsl[1],':vsl_name' => $vsl[0],':agein' => $load_ts,':ageout' => $dump_ts ),'insert',$type,$db,$querydebugmode);
 
-    $stmt = runQuery("INSERT INTO delay_table (Source,Ship_id,Ship,Age_IN,Age_OUT,timer_reset) VALUES ('ShipMate,:vsl[1],:vsl[0],:agein,:ageout,NOW())",array(':vsl[1]' => $vsl[1], ':vsl[0]' => $vsl[0],':agenin' => $load_ts, ':ageout' => $dump_ts),'insert',$type,$db,$querydebugmode);
+  //  $stmt = runQuery("INSERT INTO delay_table(Source,Ship_id,Ship,Age_IN,Age_OUT,timer_reset) VALUES ('NS5',:vslid,:vslname,:agein,:ageout,NOW())",array(':vslid' => $vsl[1], ':vslname' => $vsl[0],':agenin' => $load_ts, ':ageout' => $dump_ts),'insert',$type,$db,$querydebugmode);
 
     date_default_timezone_set('Etc/GMT+8');
     $timestamp = time();
@@ -222,7 +234,7 @@ $query = "SELECT Top 1 FILE_NAME,CONVERT(VARCHAR(19), LOADED_ON,120),RM_VERSION_
 
     if ($timestamp > $time)
     {
-        $stmt = runQuery("INSERT INTO delay_table (Source,Ship_id,Ship,Age_IN,Age_OUT,timer_reset) VALUES ('ShipMate,:vsl[1],:vsl[0],:agein,:ageout,NOW())",array(':vsl[1]' => $vsl[1], ':vsl[0]' => $vsl[0],':load_ts' => $load_ts, ':dumpfiles' => $dumpfiles[0], ':dump_ts' => $dump_ts),'insert',$type,$db,$querydebugmode);
+        //$stmt = runQuery("INSERT INTO delay_table (Source,Ship_id,Ship,Age_IN,Age_OUT,timer_reset) VALUES ('ShipMate,:vsl[1],:vsl[0],:agein,:ageout,NOW())",array(':vsl[1]' => $vsl[1], ':vsl[0]' => $vsl[0],':load_ts' => $load_ts, ':dumpfiles' => $dumpfiles[0], ':dump_ts' => $dump_ts),'insert',$type,$db,$querydebugmode);
     }
 
     if ( $timestamp > $year_time)
@@ -492,6 +504,70 @@ function runQuery($myquery,$parameters,$querytype, $type, $db, $querydebugmode)
 
     }
     return $stmt;
+}
+
+function sec2hms ($sec, $padHours = false)
+{
+
+    // holds formatted string
+    $hms = "";
+
+    // there are 3600 seconds in an hour, so if we
+    // divide total seconds by 3600 and throw away
+    // the remainder, we've got the number of hours
+    $hours = intval(intval($sec) / 3600);
+
+    // add to $hms, with a leading 0 if asked for
+    $hms .= ($padHours)
+        ? str_pad($hours, 2, "0", STR_PAD_LEFT). ':'
+        : $hours. ':';
+
+    // dividing the total seconds by 60 will give us
+    // the number of minutes, but we're interested in
+    // minutes past the hour: to get that, we need to
+    // divide by 60 again and keep the remainder
+    $minutes = intval(($sec / 60) % 60);
+
+    // then add to $hms (with a leading 0 if needed)
+    $hms .= str_pad($minutes, 2, "0", STR_PAD_LEFT). ':';
+
+    // seconds are simple - just divide the total
+    // seconds by 60 and keep the remainder
+    $seconds = intval($sec % 60);
+
+    // add to $hms, again with a leading 0 if needed
+    $hms .= str_pad($seconds, 2, "0", STR_PAD_LEFT);
+
+    // done!
+    return $hms;
+
+}
+
+function sec2dhms ($sec, $padHours = false)
+{
+    $remaining = $sec;
+    $dhms = "";
+
+    // There are 86400 secs in a day
+    $days = floor($sec / 86400);
+    $remaining = $sec - ($days * 86400);
+    $dhms .= str_pad($days, 2, "0", STR_PAD_LEFT). ':';
+
+    // There are 3600 secs in an hour
+    $hours = floor( $remaining / 3600 );
+    $remaining = $remaining - ($hours * 3600);
+    $dhms .= str_pad($hours, 2, "0", STR_PAD_LEFT). ':';
+
+    // 60 mins
+    $mins = floor( $remaining / 60 );
+    $remaining = $remaining - ( $mins * 60 );
+    $dhms .= str_pad($mins, 2, "0", STR_PAD_LEFT). ':';
+
+    // Secs is the remainders
+    $secs = $remaining;
+    $dhms .= str_pad($secs, 2, "0", STR_PAD_LEFT);
+
+    return $dhms;
 }
 
 ?>

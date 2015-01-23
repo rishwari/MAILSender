@@ -3,7 +3,6 @@
 $querydebugmode = 'true';
 $type = 'pdo';
 
-
 $shipmate = DB_connect_sql($shipmate_db_host,$shipmate_db,$shipmate_db_user,$shipmate_db_pwd);
 
 $db = DB_connect($myshipmate_db_host,$myshipmate_db,$myshipmate_db_user,$myshipmate_db_pwd);
@@ -419,6 +418,70 @@ function runQuery($myquery,$parameters,$querytype, $type, $db, $querydebugmode)
 
     }
     return $stmt;
+}
+
+function sec2hms ($sec, $padHours = false)
+{
+
+    // holds formatted string
+    $hms = "";
+
+    // there are 3600 seconds in an hour, so if we
+    // divide total seconds by 3600 and throw away
+    // the remainder, we've got the number of hours
+    $hours = intval(intval($sec) / 3600);
+
+    // add to $hms, with a leading 0 if asked for
+    $hms .= ($padHours)
+        ? str_pad($hours, 2, "0", STR_PAD_LEFT). ':'
+        : $hours. ':';
+
+    // dividing the total seconds by 60 will give us
+    // the number of minutes, but we're interested in
+    // minutes past the hour: to get that, we need to
+    // divide by 60 again and keep the remainder
+    $minutes = intval(($sec / 60) % 60);
+
+    // then add to $hms (with a leading 0 if needed)
+    $hms .= str_pad($minutes, 2, "0", STR_PAD_LEFT). ':';
+
+    // seconds are simple - just divide the total
+    // seconds by 60 and keep the remainder
+    $seconds = intval($sec % 60);
+
+    // add to $hms, again with a leading 0 if needed
+    $hms .= str_pad($seconds, 2, "0", STR_PAD_LEFT);
+
+    // done!
+    return $hms;
+
+}
+
+function sec2dhms ($sec, $padHours = false)
+{
+    $remaining = $sec;
+    $dhms = "";
+
+    // There are 86400 secs in a day
+    $days = floor($sec / 86400);
+    $remaining = $sec - ($days * 86400);
+    $dhms .= str_pad($days, 2, "0", STR_PAD_LEFT). ':';
+
+    // There are 3600 secs in an hour
+    $hours = floor( $remaining / 3600 );
+    $remaining = $remaining - ($hours * 3600);
+    $dhms .= str_pad($hours, 2, "0", STR_PAD_LEFT). ':';
+
+    // 60 mins
+    $mins = floor( $remaining / 60 );
+    $remaining = $remaining - ( $mins * 60 );
+    $dhms .= str_pad($mins, 2, "0", STR_PAD_LEFT). ':';
+
+    // Secs is the remainders
+    $secs = $remaining;
+    $dhms .= str_pad($secs, 2, "0", STR_PAD_LEFT);
+
+    return $dhms;
 }
 
 ?>
