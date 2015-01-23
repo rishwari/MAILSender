@@ -8,15 +8,6 @@ $type = 'pdo';
 $querydebugmode = 'false';
 $debug = 'false';
 
-$ns5_db_host = '10.22.10.22:1433';
-$ns5_db = 'Safenet_Train';
-$ns5_db_user = 'Toad_User';
-$ns5_db_pwd = 'Acc3ss4Us!';
-
-$myns5_db_host = '10.22.70.48';
-$myns5_db = "itss_dev";
-$myns5_db_user = 'rohini';
-$myns5_db_pwd = 'rohini';
 
 $ns5 = DB_connect_sql($ns5_db_host,$ns5_db,$ns5_db_user,$ns5_db_pwd);
 $db = DB_connect($myns5_db_host,$myns5_db,$myns5_db_user,$myns5_db_pwd);
