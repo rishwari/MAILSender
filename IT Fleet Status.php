@@ -234,6 +234,7 @@ function params($string,$data,$querydebugmode)
         }
     }
     else{
+        
         $data == array_values($data);
         foreach ($data as $k => $v)
         {
