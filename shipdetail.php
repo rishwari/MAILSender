@@ -201,6 +201,7 @@ function queryselectcheck($check)
 
 function queryinsertcheck($check)
 {
+    
     $insertcheck = NULL;
 
     $insertcheck = $check->lastInsertId();
